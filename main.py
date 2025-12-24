@@ -139,6 +139,13 @@ def main():
                             st.session_state.categories[new_category] = []
                             save_categories()
                             st.rerun()
+                
+                st.download_button(
+                    label="Download Expenses",
+                    data=filtered_expenses_df.to_csv().encode('utf-8'),
+                    file_name='expenses.csv',
+                    mime='text/csv',
+                )
 
             with tab2:
                 st.subheader("Income Summary")
@@ -173,6 +180,13 @@ def main():
 
                 st.subheader("Daily Income")
                 daily_income = edited_income_df.groupby(DATE_COLUMN)[AMOUNT_COLUMN].sum()
-                st.line_chart(daily_income)    
+                st.line_chart(daily_income)
+
+                st.download_button(
+                    label="Download Income",
+                    data=edited_income_df.to_csv().encode('utf-8'),
+                    file_name='income.csv',
+                    mime='text/csv',
+                )    
         
 main()
