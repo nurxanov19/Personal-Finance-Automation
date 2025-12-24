@@ -9,6 +9,7 @@ from config import (
     AMOUNT_COLUMN,
     CATEGORY_COLUMN,
     CURRENCY_COLUMN,
+    ACCOUNT_COLUMN,
 )
 
 # Setup Streamlit
@@ -76,7 +77,7 @@ def main():
                     filtered_expenses_df = st.session_state.expenses_df[st.session_state.expenses_df[CATEGORY_COLUMN].isin(selected_categories)]
 
                 edited_df = st.data_editor(
-                    filtered_expenses_df[[DATE_COLUMN, DESCRIPTION_COLUMN, AMOUNT_COLUMN, CATEGORY_COLUMN]],
+                    filtered_expenses_df[[DATE_COLUMN, DESCRIPTION_COLUMN, AMOUNT_COLUMN, CATEGORY_COLUMN, ACCOUNT_COLUMN]],
                     column_config={
                         DATE_COLUMN: st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
                         DESCRIPTION_COLUMN: "Description",
@@ -84,7 +85,8 @@ def main():
                         CATEGORY_COLUMN: st.column_config.SelectboxColumn(
                             "Category",
                             options=list(st.session_state.categories.keys())
-                        )
+                        ),
+                        ACCOUNT_COLUMN: "Account",
                     },
                     hide_index=True,
                     use_container_width=True,
@@ -115,6 +117,16 @@ def main():
                     title="Expenses by Category"
                 )
                 st.plotly_chart(fig, use_container_width=True)
+
+                st.subheader("Expenses by Account")
+                account_totals = filtered_expenses_df.groupby(ACCOUNT_COLUMN)[AMOUNT_COLUMN].sum().reset_index()
+                fig2 = px.pie(
+                    account_totals,
+                    values=AMOUNT_COLUMN,
+                    names=ACCOUNT_COLUMN,
+                    title="Expenses by Account"
+                )
+                st.plotly_chart(fig2, use_container_width=True)
 
                 st.subheader("Daily Expenses")
                 daily_expenses = filtered_expenses_df.groupby(DATE_COLUMN)[AMOUNT_COLUMN].sum()
