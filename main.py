@@ -145,6 +145,34 @@ def main():
                 total_income = income_df[AMOUNT_COLUMN].sum()
                 st.metric("Total Income", f"{total_income:,.2f} {income_df[CURRENCY_COLUMN].iloc[0]}")
 
-                st.write(income_df)    
+                edited_income_df = st.data_editor(
+                    income_df[[DATE_COLUMN, DESCRIPTION_COLUMN, AMOUNT_COLUMN, CATEGORY_COLUMN, ACCOUNT_COLUMN]],
+                    column_config={
+                        DATE_COLUMN: st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
+                        DESCRIPTION_COLUMN: "Description",
+                        AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format=f"%.2f {income_df[CURRENCY_COLUMN].iloc[0]}"),
+                        CATEGORY_COLUMN: "Category",
+                        ACCOUNT_COLUMN: "Account",
+                    },
+                    hide_index=True,
+                    use_container_width=True,
+                    key="income_editor"
+                )
+
+                st.subheader('Income by Category')
+                income_category_totals = edited_income_df.groupby(CATEGORY_COLUMN)[AMOUNT_COLUMN].sum().reset_index()
+                income_category_totals = income_category_totals.sort_values(AMOUNT_COLUMN, ascending=False)
+                
+                fig3 = px.pie(
+                    income_category_totals,
+                    values=AMOUNT_COLUMN,
+                    names=CATEGORY_COLUMN,
+                    title="Income by Category"
+                )
+                st.plotly_chart(fig3, use_container_width=True)
+
+                st.subheader("Daily Income")
+                daily_income = edited_income_df.groupby(DATE_COLUMN)[AMOUNT_COLUMN].sum()
+                st.line_chart(daily_income)    
         
 main()
