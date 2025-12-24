@@ -2,11 +2,19 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import json, os
+from config import (
+    CATEGORY_FILE,
+    DATE_COLUMN,
+    DESCRIPTION_COLUMN,
+    AMOUNT_COLUMN,
+    CATEGORY_COLUMN,
+    CURRENCY_COLUMN,
+)
 
 # Setup Streamlit
 st.set_page_config(page_title="Finance Dashboard", page_icon='$', layout='wide')
 
-category_file = 'categories.json'
+category_file = CATEGORY_FILE
 
 if 'categories' not in st.session_state:
     st.session_state.categories = {
@@ -25,11 +33,11 @@ def load_transactions(file):
     try:
         df = pd.read_csv(file)
         df.columns = [col.strip().lower() for col in df.columns]
-        df["amount"] = df["amount"].str.replace(',', '', regex=False).astype(float)
-        df["date"] = pd.to_datetime(df['date'], format="%d/%m/%Y")
+        df[AMOUNT_COLUMN] = df[AMOUNT_COLUMN].str.replace(',', '', regex=False).astype(float)
+        df[DATE_COLUMN] = pd.to_datetime(df[DATE_COLUMN], format="%d/%m/%Y")
         
         # Handle empty categories
-        df['category'] = df['category'].fillna('Uncategorized')
+        df[CATEGORY_COLUMN] = df[CATEGORY_COLUMN].fillna('Uncategorized')
         
         return df
 
@@ -47,11 +55,11 @@ def main():
 
         if df is not None:
             # Expenses are negative, income is positive
-            expenses_df = df[df['amount'] < 0].copy()
-            income_df = df[df['amount'] > 0].copy()
+            expenses_df = df[df[AMOUNT_COLUMN] < 0].copy()
+            income_df = df[df[AMOUNT_COLUMN] > 0].copy()
             
             # Make the amount positive for display
-            expenses_df['amount'] = expenses_df['amount'].abs()
+            expenses_df[AMOUNT_COLUMN] = expenses_df[AMOUNT_COLUMN].abs()
 
             st.session_state.expenses_df = expenses_df.copy()
 
@@ -60,12 +68,12 @@ def main():
                 st.subheader('Your Expenses')
                 
                 edited_df = st.data_editor(
-                    st.session_state.expenses_df[['date', 'description', 'amount', 'category']],
+                    st.session_state.expenses_df[[DATE_COLUMN, DESCRIPTION_COLUMN, AMOUNT_COLUMN, CATEGORY_COLUMN]],
                     column_config={
-                        "date": st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
-                        "description": "Description",
-                        "amount": st.column_config.NumberColumn("Amount", format=f"%.2f {expenses_df['currency'].iloc[0]}"),
-                        "category": st.column_config.SelectboxColumn(
+                        DATE_COLUMN: st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
+                        DESCRIPTION_COLUMN: "Description",
+                        AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format=f"%.2f {expenses_df[CURRENCY_COLUMN].iloc[0]}"),
+                        CATEGORY_COLUMN: st.column_config.SelectboxColumn(
                             "Category",
                             options=list(st.session_state.categories.keys())
                         )
@@ -80,13 +88,13 @@ def main():
                     st.session_state.expenses_df = edited_df.copy()
                         
                 st.subheader('Expense Summary')
-                category_totals = st.session_state.expenses_df.groupby("category")["amount"].sum().reset_index()
-                category_totals = category_totals.sort_values("amount", ascending=False)
+                category_totals = st.session_state.expenses_df.groupby(CATEGORY_COLUMN)[AMOUNT_COLUMN].sum().reset_index()
+                category_totals = category_totals.sort_values(AMOUNT_COLUMN, ascending=False)
                 
                 st.dataframe(
                     category_totals, 
                     column_config={
-                     "amount": st.column_config.NumberColumn("Amount", format=f"%.2f {expenses_df['currency'].iloc[0]}")   
+                     AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format=f"%.2f {expenses_df[CURRENCY_COLUMN].iloc[0]}")   
                     },
                     use_container_width=True,
                     hide_index=True
@@ -94,8 +102,8 @@ def main():
                 
                 fig = px.pie(
                     category_totals,
-                    values="amount",
-                    names="category",
+                    values=AMOUNT_COLUMN,
+                    names=CATEGORY_COLUMN,
                     title="Expenses by Category"
                 )
                 st.plotly_chart(fig, use_container_width=True)
@@ -110,8 +118,8 @@ def main():
 
             with tab2:
                 st.subheader("Income Summary")
-                total_income = income_df["amount"].sum()
-                st.metric("Total Income", f"{total_income:,.2f} {income_df['currency'].iloc[0]}")
+                total_income = income_df[AMOUNT_COLUMN].sum()
+                st.metric("Total Income", f"{total_income:,.2f} {income_df[CURRENCY_COLUMN].iloc[0]}")
 
                 st.write(income_df)    
         
