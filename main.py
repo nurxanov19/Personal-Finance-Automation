@@ -66,9 +66,17 @@ def main():
             tab1, tab2 = st.tabs(['Expenses', 'Income'])
             with tab1:
                 st.subheader('Your Expenses')
-                
+
+                categories = ["All"] + list(st.session_state.categories.keys())
+                selected_categories = st.multiselect("Filter by category", categories, default=["All"])
+
+                if "All" in selected_categories:
+                    filtered_expenses_df = st.session_state.expenses_df
+                else:
+                    filtered_expenses_df = st.session_state.expenses_df[st.session_state.expenses_df[CATEGORY_COLUMN].isin(selected_categories)]
+
                 edited_df = st.data_editor(
-                    st.session_state.expenses_df[[DATE_COLUMN, DESCRIPTION_COLUMN, AMOUNT_COLUMN, CATEGORY_COLUMN]],
+                    filtered_expenses_df[[DATE_COLUMN, DESCRIPTION_COLUMN, AMOUNT_COLUMN, CATEGORY_COLUMN]],
                     column_config={
                         DATE_COLUMN: st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
                         DESCRIPTION_COLUMN: "Description",
@@ -88,7 +96,7 @@ def main():
                     st.session_state.expenses_df = edited_df.copy()
                         
                 st.subheader('Expense Summary')
-                category_totals = st.session_state.expenses_df.groupby(CATEGORY_COLUMN)[AMOUNT_COLUMN].sum().reset_index()
+                category_totals = filtered_expenses_df.groupby(CATEGORY_COLUMN)[AMOUNT_COLUMN].sum().reset_index()
                 category_totals = category_totals.sort_values(AMOUNT_COLUMN, ascending=False)
                 
                 st.dataframe(
@@ -107,6 +115,10 @@ def main():
                     title="Expenses by Category"
                 )
                 st.plotly_chart(fig, use_container_width=True)
+
+                st.subheader("Daily Expenses")
+                daily_expenses = filtered_expenses_df.groupby(DATE_COLUMN)[AMOUNT_COLUMN].sum()
+                st.line_chart(daily_expenses)
 
                 with st.expander("Add New Category"):
                     new_category = st.text_input("New Category Name")
