@@ -81,7 +81,7 @@ def main():
                     column_config={
                         DATE_COLUMN: st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
                         DESCRIPTION_COLUMN: "Description",
-                        AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format=f"%.2f {expenses_df[CURRENCY_COLUMN].iloc[0]}"),
+                        AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format='accounting'),
                         CATEGORY_COLUMN: st.column_config.SelectboxColumn(
                             "Category",
                             options=list(st.session_state.categories.keys())
@@ -89,7 +89,7 @@ def main():
                         ACCOUNT_COLUMN: "Account",
                     },
                     hide_index=True,
-                    use_container_width=True,
+                    width='stretch',
                     key="category_editor"
                 )
 
@@ -104,9 +104,9 @@ def main():
                 st.dataframe(
                     category_totals, 
                     column_config={
-                     AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format=f"%.2f {expenses_df[CURRENCY_COLUMN].iloc[0]}")   
+                     AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format='accounting')   
                     },
-                    use_container_width=True,
+                    width='stretch',
                     hide_index=True
                 )
                 
@@ -157,12 +157,12 @@ def main():
                     column_config={
                         DATE_COLUMN: st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
                         DESCRIPTION_COLUMN: "Description",
-                        AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format=f"%.2f {income_df[CURRENCY_COLUMN].iloc[0]}"),
+                        AMOUNT_COLUMN: st.column_config.NumberColumn("Amount", format='accounting'),
                         CATEGORY_COLUMN: "Category",
                         ACCOUNT_COLUMN: "Account",
                     },
                     hide_index=True,
-                    use_container_width=True,
+                    width='stretch',
                     key="income_editor"
                 )
 
